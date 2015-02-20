@@ -1,4 +1,6 @@
-var Promise = require('bluebird');
+var Promise = require('promise');
+var invariant = require('react/lib/invariant');
+
 var currentPromiseSet;
 var isInitializing = false;
 module.exports = {
@@ -18,6 +20,7 @@ module.exports = {
   },
 
   generateMixin: function (callback) {
+    invariant(typeof callback === 'function', 'generateMixin requires a callback function');
     return {
       statics: {
         initialize: callback

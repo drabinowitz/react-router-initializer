@@ -1,0 +1,19 @@
+{
+  "name": "react-router-initializer",
+  "version": "1.0.0",
+  "description": "small library allowing the react-router to function in isomorphic apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drabinowitz/react-router-initializer"
+  },
+  "author": "drabinowitz <dmitrirabinowitz+code@gmail.com> (http://www.dmitrirabinowitz.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/drabinowitz/react-router-initializer/issues"
+  },
+  "homepage": "https://github.com/drabinowitz/react-router-initializer"
+}
