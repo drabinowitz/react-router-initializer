@@ -6,6 +6,7 @@ describe('initializer', function () {
   beforeEach(function () {
     initializer = require('../initializer');
     Promise = require('promise');
+    Promise.all = jest.genMockFunction();
     mockCb = jest.genMockFunction();
     mockState = {
       params: {},
@@ -29,7 +30,6 @@ describe('initializer', function () {
   describe('generateMixin', function () {
     it('should generate a statics "initialize" method with the passed in cb', function () {
       var initializerMixin = initializer.generateMixin(mockCb);
-
       expect(Object.keys(initializerMixin).length).toBe(1);
       expect(Object.keys(initializerMixin.statics).length).toBe(1);
       expect(initializerMixin.statics.__rrInitialize__).toBe(mockCb);
@@ -44,9 +44,8 @@ describe('initializer', function () {
 
   describe('register', function () {
     it('should do nothing if we are not initializing', function () {
-      Array.prototype.push = jest.genMockFunction();
       initializer.register({});
-      expect(Array.prototype.push).notToBeCalled();
+      expect(initializer.__currentPromiseSet__.length).toBe(0);
     });
   });
 
@@ -65,7 +64,7 @@ describe('initializer', function () {
 
     it('should allow the initializer.register method to add promises to the current promise set', function () {
       Array.prototype.push = jest.genMockFunction();
-      mockState.routes[0].handler.__rrInitialize__
+      mockState.routes[0].handler.__rrInitialize__ = initializer.register.bind(initializer, mockPromise);
       expect(Array.prototype.push).notToBeCalled();
     });
   });
