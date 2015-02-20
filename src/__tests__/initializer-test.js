@@ -2,24 +2,28 @@ jest.dontMock('../initializer');
 jest.dontMock('react/lib/invariant');
 
 describe('initializer', function () {
-  var initializer, mockCb, mockState, Promise;
+  var initializer, mockCb, mockState, Promise, mockPromise;
   beforeEach(function () {
     initializer = require('../initializer');
     Promise = require('promise');
     mockCb = jest.genMockFunction();
     mockState = {
+      params: {},
       routes: [
         {
           handler: {
-            initialize: jest.genMockFunction()
+            __rrInitialize__: jest.genMockFunction()
           }
         },
         {
           handler: {
-            initialize: jest.genMockFunction()
+            __rrInitialize__: jest.genMockFunction()
           }
         }
       ]
+    };
+    mockPromise = {
+      then: jest.genMockFunction()
     };
   });
   describe('generateMixin', function () {
@@ -28,7 +32,7 @@ describe('initializer', function () {
 
       expect(Object.keys(initializerMixin).length).toBe(1);
       expect(Object.keys(initializerMixin.statics).length).toBe(1);
-      expect(initializerMixin.statics.initialize).toBe(mockCb);
+      expect(initializerMixin.statics.__rrInitialize__).toBe(mockCb);
     });
 
     it('should throw an error if the passed in cb is not a function', function () {
@@ -47,6 +51,22 @@ describe('initializer', function () {
   });
 
   describe('exec', function () {
-    it('should ');
+    it('should execute all route handlers passing in state.params and state', function () {
+      initializer.exec(mockState);
+
+      expect(mockState.routes[0].handler.__rrInitialize__.mock.calls.length).toBe(1);
+      expect(mockState.routes[0].handler.__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
+      expect(mockState.routes[0].handler.__rrInitialize__.mock.calls[0][1]).toBe(mockState);
+
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls.length).toBe(1);
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0][1]).toBe(mockState);
+    });
+
+    it('should allow the initializer.register method to add promises to the current promise set', function () {
+      Array.prototype.push = jest.genMockFunction();
+      mockState.routes[0].handler.__rrInitialize__
+      expect(Array.prototype.push).notToBeCalled();
+    });
   });
 });
