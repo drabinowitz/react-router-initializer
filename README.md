@@ -1,0 +1,2 @@
+#React-Router-Initializer
+>The `React-Router` is almost perfect for building isomorphic apps but it creates chicken and the egg scenarios where we want our stores to have data before we render our components but we don't know what stores we need to load until we render our components. The `React-Router-Initializer` solves this problem by allowing our components to request the necessary data before they are rendered.
