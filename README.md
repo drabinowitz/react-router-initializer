@@ -47,14 +47,21 @@ module.exports = MessageOwner;
 var messageConstants = require('../constants/messageConstants');
 var appDispatcher = require('../dispatcher/appDispatcher');
 var initializer = require('react-router-initializer');
-var $ = require('jquery');
+
+//gotta love facebook's fetchr, no more thinking about whether im on the client or server! Let's awesome we Promisified our methods
+var fetcher = require('../utils/fetcher');
 
 var messageActions = {
   get: function (roomId) {
-    initializer.register($.get('/rooms/' + roomId + '/messages').then(function (results) {
+    //promisified fetchr read method
+    var fetchMessages = fetcher.readAsync('messages', {roomId: roomId}, {});
 
+    //register our promise within our actions to handle data dependencies
+    this.fetchMessages = fetchMessages;
+
+    //register our request with the initializer
+    initializer.register(fetchMessages.then(function (data, meta) {
       //work your magic here
-
     }));
   }
 
@@ -93,4 +100,67 @@ reactRouter.run(function (Handler, state) {
 
 Those are the three core pieces of the initializer, but it comes packaged with one more tool, which can be useful in specific app architectures.
 
-4) **the `` method**
+4) **the `handle` method**, which is designed for large scale applications. Since we are only triggering the route handler components themselves with our default implementation, we are not able to trigger nested components within each route handler. The `handle` method is used here so that a handler can indicate which child components should be initialized along with it. This method supports nesting so each child can then further `handle` its own children
+
+```javascript
+//MessageOwner.js
+
+var React = require('react');
+var messageActions = require('../actions/messageActions');
+var initializer = require('react-router-initializer');
+var LikeOwner = require('./LikeOwner');
+
+var getMessagesForRoom = function (routeParams) {
+  //trigger our action before we initialize our children
+  messageActions.get(routeParams.roomId);
+  initializer.handle([LikeOwner]);
+};
+
+//work your magic here
+```
+
+And then in the `LikeOwner` child component
+
+```javascript
+//LikeOwner.js
+
+var React = require('react');
+var likeActions = require('../actions/likeActions');
+var LikeOwner = require('./LikeOwner');
+
+var getLikesForRoom = function (routeParams) {
+  likeActions.get(routeParams.roomId);
+};
+
+//lots more magic to work below
+```
+
+If we have data dependencies we need to handle (for example we need to fetch likes for every message in the room rather than the room itself, we can do this within our actions)
+
+```javascript
+//lkeActions.js
+
+var messageActions = require('./messageActions');
+var fetcher = require('../utils/fetcher');
+var _ = require('underscore');
+
+var likeActions = {
+  get: function () {
+    //fetch our messages then fetch our likes when we are done
+    var fetchLikes = messageActions.fetchMessages.then(function (data) {
+      return fetcher.readAsync('likes', {messageIds: _.pluck(data, 'id')}, {});
+    });
+
+    //register our promise within our actions to handle data dependencies
+    this.fetchLikes = fetchLikes;
+
+    //register our request with the initializer
+    initializer.register(fetchLikes.then(function (data, meta) {
+      //work your magic here
+    }));
+  }
+
+  //should probably work some more magic here too
+
+};
+```
