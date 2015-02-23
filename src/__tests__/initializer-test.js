@@ -2,7 +2,7 @@ jest.dontMock('../initializer');
 jest.dontMock('react/lib/invariant');
 
 describe('initializer', function () {
-  var initializer, mockCb, mockState, Promise, mockPromise;
+  var initializer, mockCb, mockState, Promise, mockPromise, mockComponents, nestedMockComponent;
   beforeEach(function () {
     initializer = require('../initializer');
     Promise = require('promise');
@@ -25,6 +25,17 @@ describe('initializer', function () {
     };
     mockPromise = {
       then: jest.genMockFunction()
+    };
+    mockComponents = [
+      {
+        __rrInitialize__: jest.genMockFunction()
+      },
+      {
+        __rrInitialize__: jest.genMockFunction()
+      }
+    ];
+    nestedMockComponent = {
+      __rrInitialize__: jest.genMockFunction()
     };
   });
   describe('generateMixin', function () {
@@ -49,15 +60,17 @@ describe('initializer', function () {
     });
   });
 
-  describe('exec', function () {
+  describe('execute', function () {
     it('should execute all route handlers passing in state.params and state', function () {
       initializer.execute(mockState);
 
       expect(mockState.routes[0].handler.__rrInitialize__.mock.calls.length).toBe(1);
+      expect(mockState.routes[0].handler.__rrInitialize__.mock.calls[0].length).toBe(2);
       expect(mockState.routes[0].handler.__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
       expect(mockState.routes[0].handler.__rrInitialize__.mock.calls[0][1]).toBe(mockState);
 
       expect(mockState.routes[1].handler.__rrInitialize__.mock.calls.length).toBe(1);
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0].length).toBe(2);
       expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
       expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0][1]).toBe(mockState);
     });
@@ -75,6 +88,58 @@ describe('initializer', function () {
         mockState.routes[0].handler.__rrInitialize__ = initializer.register.bind(initializer, {});
         initializer.exec(mockState);
       }).toThrow(new Error('Invariant Violation: attempted to register a non promise'));
+    });
+  });
+
+  describe('handle', function () {
+    it('should allow a handler to initialize an array of components', function () {
+      mockState.routes[0].handler.__rrInitialize__ = function () {
+        initializer.handle(mockComponents);
+      };
+
+      initializer.execute(mockState);
+
+      expect(mockComponents[0].__rrInitialize__.mock.calls.length).toBe(1);
+      expect(mockComponents[0].__rrInitialize__.mock.calls[0].length).toBe(2);
+      expect(mockComponents[0].__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
+      expect(mockComponents[0].__rrInitialize__.mock.calls[0][1]).toBe(mockState);
+
+      expect(mockComponents[1].__rrInitialize__.mock.calls.length).toBe(1);
+      expect(mockComponents[1].__rrInitialize__.mock.calls[0].length).toBe(2);
+      expect(mockComponents[1].__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
+      expect(mockComponents[1].__rrInitialize__.mock.calls[0][1]).toBe(mockState);
+
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls.length).toBe(1);
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0].length).toBe(2);
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0][1]).toBe(mockState);
+    });
+
+    it('should properly handle deeply nested handle statements', function () {
+      mockState.routes[0].handler.__rrInitialize__ = function () {
+        initializer.handle(mockComponents);
+      };
+
+      mockComponents[0].__rrInitialize__ = function () {
+        initializer.handle([nestedMockComponent]);
+      };
+
+      initializer.execute(mockState);
+
+      expect(nestedMockComponent.__rrInitialize__.mock.calls.length).toBe(1);
+      expect(nestedMockComponent.__rrInitialize__.mock.calls[0].length).toBe(2);
+      expect(nestedMockComponent.__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
+      expect(nestedMockComponent.__rrInitialize__.mock.calls[0][1]).toBe(mockState);
+
+      expect(mockComponents[1].__rrInitialize__.mock.calls.length).toBe(1);
+      expect(mockComponents[1].__rrInitialize__.mock.calls[0].length).toBe(2);
+      expect(mockComponents[1].__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
+      expect(mockComponents[1].__rrInitialize__.mock.calls[0][1]).toBe(mockState);
+
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls.length).toBe(1);
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0].length).toBe(2);
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
+      expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0][1]).toBe(mockState);
     });
   });
 });

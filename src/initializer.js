@@ -2,12 +2,22 @@ var Promise = require('promise');
 var invariant = require('react/lib/invariant');
 
 var isInitializing = false;
-var initializer = {};
+var triggerInitializer = function (component, state) {
+  //if the component exists and it has an __rrInitialize__ method we invoke that method
+  if (component && component.__rrInitialize__) {
+    //invoke passing in params and full state object if it is needed
+    component.__rrInitialize__(state.params, state);
+  }
+};
 
+var initializer = {};
 initializer.__currentPromiseSet__ = [];
+initializer.__currentState__ = {};
 
 initializer.exec = initializer.execute = function (state) {
   var handler;
+  //share state for use in handle method
+  this.__currentState__ = state;
   //create a new set of promises
   var registeredPromises = [];
   this.__currentPromiseSet__ = registeredPromises;
@@ -15,12 +25,7 @@ initializer.exec = initializer.execute = function (state) {
   isInitializing = true;
   //for each route in state routes we need to try to initialize the route
   state.routes.forEach(function (route) {
-    handler = route.handler;
-    //if the route has a handler and it has an __rrInitialize__ method we invoke that method
-    if (handler && handler.__rrInitialize__) {
-      //invoke passing in params and full state object if it is needed
-      handler.__rrInitialize__(state.params, state);
-    }
+    triggerInitializer(route.handler, state);
   });
   //set is initializing back to false
   isInitializing = false;
@@ -48,6 +53,15 @@ initializer.register = function (promiseToRegister) {
     //push into set of registered promises for use in promise.all in exec method
     this.__currentPromiseSet__.push(promiseToRegister);
   }
+};
+
+initializer.handle = function (componentsToHandle) {
+  //must pass in array of components
+  invariant(Array.isArray(componentsToHandle), 'must pass in an array of components to handle');
+  //trigger each component in array
+  componentsToHandle.forEach(function (component) {
+    triggerInitializer(component, this.__currentState__);
+  }.bind(this));
 };
 
 module.exports = initializer;
