@@ -3,7 +3,7 @@ var invariant = require('react/lib/invariant');
 
 var isInitializing = false;
 module.exports = {
-  __currentPromiseSet__: null,
+  __currentPromiseSet__: [],
   exec: function (state) {
     var handler;
     //create a new set of promises
@@ -36,7 +36,7 @@ module.exports = {
   register: function (promiseToRegister) {
     if (isInitializing) {
       //since there are many promise libraries we perform the minimal check required to verify this is a promise
-      invariant(typeof promiseToRegister.then === 'function');
+      invariant(typeof promiseToRegister.then === 'function', 'attempted to register a non promise');
       this.__currentPromiseSet__.push(promiseToRegister);
     }
   }

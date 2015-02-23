@@ -28,7 +28,7 @@ describe('initializer', function () {
     };
   });
   describe('generateMixin', function () {
-    it('should generate a statics "initialize" method with the passed in cb', function () {
+    it('should generate a statics "__rrInitialize__" method with the passed in cb', function () {
       var initializerMixin = initializer.generateMixin(mockCb);
       expect(Object.keys(initializerMixin).length).toBe(1);
       expect(Object.keys(initializerMixin.statics).length).toBe(1);
@@ -63,9 +63,18 @@ describe('initializer', function () {
     });
 
     it('should allow the initializer.register method to add promises to the current promise set', function () {
-      Array.prototype.push = jest.genMockFunction();
       mockState.routes[0].handler.__rrInitialize__ = initializer.register.bind(initializer, mockPromise);
-      expect(Array.prototype.push).notToBeCalled();
+      initializer.exec(mockState);
+
+      expect(initializer.__currentPromiseSet__.length).toBe(1);
+      expect(initializer.__currentPromiseSet__[0]).toBe(mockPromise);
+    });
+
+    it('should throw an error if the passed in object is not a valid promise', function () {
+      expect(function () {
+        mockState.routes[0].handler.__rrInitialize__ = initializer.register.bind(initializer, {});
+        initializer.exec(mockState);
+      }).toThrow(new Error('Invariant Violation: attempted to register a non promise'));
     });
   });
 });
