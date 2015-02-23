@@ -51,7 +51,7 @@ describe('initializer', function () {
 
   describe('exec', function () {
     it('should execute all route handlers passing in state.params and state', function () {
-      initializer.exec(mockState);
+      initializer.execute(mockState);
 
       expect(mockState.routes[0].handler.__rrInitialize__.mock.calls.length).toBe(1);
       expect(mockState.routes[0].handler.__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
