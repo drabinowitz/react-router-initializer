@@ -1,4 +1,4 @@
-#React-Router-Initializer
+  #React-Router-Initializer
 >The `react-router` is almost perfect for building isomorphic apps but it creates chicken and the egg scenarios where we want our stores to have data before we render our components but we don't know what stores we need to load until we render our components. The `react-router-initializer` solves this problem by allowing our components to request the necessary data before they are rendered.
 
 ##Description
@@ -166,3 +166,13 @@ var likeActions = {
 
 };
 ```
+
+##API
+
+The initializer consists of the above four methods:
+
+```
+var initializerMixin = initializer.generateMixin(callback)
+```
+
+@param `callback` FUNCTION - REQUIRED: this callback should execute all actions the component needs when it is initialized. This is also where you should execute all `initializer.handle` methods to trigger the actions needed by child components of this handler.
