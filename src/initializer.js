@@ -58,10 +58,12 @@ initializer.register = function (promiseToRegister) {
 initializer.handle = function (componentsToHandle) {
   //must pass in array of components
   invariant(Array.isArray(componentsToHandle), 'must pass in an array of components to handle');
-  //trigger each component in array
-  componentsToHandle.forEach(function (component) {
-    triggerInitializer(component, this.__currentState__);
-  }.bind(this));
+  //trigger each component in array if we are initializing
+  if (isInitializing) {
+    componentsToHandle.forEach(function (component) {
+      triggerInitializer(component, this.__currentState__);
+    }.bind(this));
+  }
 };
 
 module.exports = initializer;

@@ -119,6 +119,8 @@ var getMessagesForRoom = function (routeParams) {
 //work your magic here
 ```
 
+If you want to reuse the `getMessagesForRoom` in function in your `React` class, for example in the `componentWillMount` lifecycle then feel free to. The `initializer.handle` method will only do anything while we are initializing
+
 And then in the `LikeOwner` child component
 
 ```javascript

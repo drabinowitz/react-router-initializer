@@ -141,5 +141,18 @@ describe('initializer', function () {
       expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0][0]).toBe(mockState.params);
       expect(mockState.routes[1].handler.__rrInitialize__.mock.calls[0][1]).toBe(mockState);
     });
+
+    it('should do nothing if we are not initializing', function () {
+      initializer.handle(mockComponents);
+
+      expect(mockComponents[0].__rrInitialize__).not.toBeCalled();
+      expect(mockComponents[1].__rrInitialize__).not.toBeCalled();
+    });
+
+    it('should throw an error if an array is not passed in', function () {
+      expect(function () {
+        initializer.handle(nestedMockComponent);
+      }).toThrow(new Error('Invariant Violation: must pass in an array of components to handle'));
+    });
   });
 });
