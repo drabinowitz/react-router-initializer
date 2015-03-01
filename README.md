@@ -169,10 +169,60 @@ var likeActions = {
 
 ##API
 
-The initializer consists of the above four methods:
+###initializer.generateMixin:
 
 ```
 var initializerMixin = initializer.generateMixin(callback)
 ```
 
 @param `callback` FUNCTION - REQUIRED: this callback should execute all actions the component needs when it is initialized. This is also where you should execute all `initializer.handle` methods to trigger the actions needed by child components of this handler.
+
+The `callback` will receive the `params` and `routerState` as inputs:
+
+```
+callback(params, routerState)
+```
+
+@return `initializerMixin` OBJECT: the mixin for the component containing a static method, which will allow it to be initialized.
+
+***
+
+###initializer.register:
+
+```
+initializer.register(promise)
+```
+
+@param `promise` PROMISE OBJECT - REQUIRED: the promise for app data that the store will need to render its route. The `initializer` will wait for the promise to be resolved or rejected before rendering.
+
+***
+
+###initializer.execute:
+
+```
+var initializerPromise = initializer.execute(routerState)
+```
+
+@param `routerState` STATE OBJECT - REQUIRED: the router state passed in as the second argument to the callback for `router.run`:
+
+@return `initializerPromise` PROMISE OBJECT: a promise that will be resolved when all promises passed into `initializer.register` are resolved. The promise will be rejected if any of the registered promises are rejected.
+
+```
+router.run(function (Handler, routerState) {
+  initializer.execute(routerState).then(function () {
+    React.renderToString(Handler);
+  });
+});
+```
+
+The `initializer` will use this state to trigger the proper requests.
+
+***
+
+###initializer.handle:
+
+```
+initializer.handle(arrayOfComponentClasses)
+```
+
+@params `arrayofComponentClasses` ARRAY - REQUIRED: an array of `React` component classes. Component classes will have their `initializerMixin` callbacks executed starting from the first to last index of the array and will receive `params` and `routerState` as inputs.
